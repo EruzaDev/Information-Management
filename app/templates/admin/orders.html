@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Orders - GameKart{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">All Orders</h1>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>#{{ order.id }}</td>
+                    <td>{{ order.customer.name }}</td>
+                    <td>${{ "%.2f"|format(order.total_amount) }}</td>
+                    <td>
+                        <span class="badge bg-{{ 'success' if order.status == 'completed' 
+                                               else 'warning' if order.status == 'pending' 
+                                               else 'danger' }}">
+                            {{ order.status }}
+                        </span>
+                    </td>
+                    <td>{{ order.order_date.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                        <a href="{{ url_for('admin.order_detail', id=order.id) }}" 
+                           class="btn btn-sm btn-outline-primary">
+                            View
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

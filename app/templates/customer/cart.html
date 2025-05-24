@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart - GameKart{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Shopping Cart</h1>
+
+    {% if cart_items %}
+        <div class="row">
+            <!-- Cart Items -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        {% for item in cart_items %}
+                            <div class="cart-item mb-3 {% if not loop.last %}border-bottom pb-3{% endif %}">
+                                <div class="row align-items-center">
+                                    <!-- Game Image -->
+                                    <div class="col-md-2">
+                                        <img src="{{ url_for('static', filename='uploads/' + item.game.image_url) if item.game.image_url else 'https://via.placeholder.com/100' }}"
+                                             class="img-fluid rounded" alt="{{ item.game.title }}">
+                                    </div>
+                                    
+                                    <!-- Game Details -->
+                                    <div class="col-md-4">
+                                        <h5 class="mb-1">
+                                            <a href="{{ url_for('main.game_detail', id=item.game.id) }}" 
+                                               class="text-decoration-none text-dark">
+                                                {{ item.game.title }}
+                                            </a>
+                                        </h5>
+                                        <p class="text-muted mb-0">{{ item.game.genre.name }}</p>
+                                        <p class="text-primary mb-0">${{ "%.2f"|format(item.game.price) }}</p>
+                                    </div>
+                                    
+                                    <!-- Quantity Controls -->
+                                    <div class="col-md-3">
+                                        <form class="quantity-form d-flex align-items-center"
+                                              data-game-id="{{ item.game.id }}">
+                                            <button type="button" class="btn btn-outline-secondary btn-sm quantity-btn" 
+                                                    data-action="decrease">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                            <input type="number" class="form-control form-control-sm mx-2 text-center quantity-input" 
+                                                   value="{{ item.quantity }}" min="1" max="{{ item.game.stock_quantity }}">
+                                            <button type="button" class="btn btn-outline-secondary btn-sm quantity-btn" 
+                                                    data-action="increase">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                    
+                                    <!-- Subtotal -->
+                                    <div class="col-md-2">
+                                        <p class="h5 mb-0 subtotal" data-price="{{ item.game.price }}">
+                                            ${{ "%.2f"|format(item.game.price * item.quantity) }}
+                                        </p>
+                                    </div>
+                                    
+                                    <!-- Remove Button -->
+                                    <div class="col-md-1">
+                                        <form action="{{ url_for('customer.remove_from_cart', game_id=item.game.id) }}" 
+                                              method="POST" class="d-inline">
+                                            <button type="submit" class="btn btn-link text-danger p-0"
+
+                                                    onclick="return confirm('Remove this item from cart?')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">Order Summary</h5>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal</span>
+                            <span id="subtotal">${{ "%.2f"|format(total) }}</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Shipping</span>
+                            <span class="text-success">Free</span>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="d-flex justify-content-between mb-4">
+                            <strong>Total</strong>
+                            <strong id="total">${{ "%.2f"|format(total) }}</strong>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <a href="{{ url_for('customer.checkout') }}" class="btn btn-primary btn-lg">
+                                Proceed to Checkout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Continue Shopping -->
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('main.games') }}" class="text-decoration-none">
+                        <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Empty Cart -->
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-shopping-cart fa-4x text-muted"></i>
+            </div>
+            <h2>Your cart is empty</h2>
+            <p class="text-muted">Looks like you haven't added any games to your cart yet.</p>
+            <a href="{{ url_for('main.games') }}" class="btn btn-primary">
+                Browse Games
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.cart-item {
+    transition: all 0.3s ease;
+}
+.cart-item:hover {
+    background-color: #f8f9fa;
+}
+.quantity-input {
+    width: 60px;
+}
+.card {
+    border: none;
+    border-radius: 10px;
+}
+.btn-link {
+    text-decoration: none;
+}
+.btn-link:hover {
+    opacity: 0.7;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const quantityForms = document.querySelectorAll('.quantity-form');
+    
+    quantityForms.forEach(form => {
+        const input = form.querySelector('.quantity-input');
+        const decreaseBtn = form.querySelector('[data-action="decrease"]');
+        const increaseBtn = form.querySelector('[data-action="increase"]');
+        const gameId = form.dataset.gameId;
+        
+        // Update quantity when buttons are clicked
+        decreaseBtn.addEventListener('click', () => updateQuantity(input, -1, gameId));
+        increaseBtn.addEventListener('click', () => updateQuantity(input, 1, gameId));
+        
+        // Update quantity when input changes
+        input.addEventListener('change', () => {
+            const value = parseInt(input.value);
+            const max = parseInt(input.max);
+            const min = parseInt(input.min);
+            
+            if (value > max) {
+                input.value = max;
+                alert('Maximum available quantity is ' + max);
+            } else if (value < min) {
+                input.value = min;
+            }
+            
+            updateCart(gameId, input.value);
+        });
+    });
+    
+    function updateQuantity(input, change, gameId) {
+        const currentValue = parseInt(input.value);
+        const newValue = currentValue + change;
+        const max = parseInt(input.max);
+        const min = parseInt(input.min);
+        
+        if (newValue <= max && newValue >= min) {
+            input.value = newValue;
+            updateCart(gameId, newValue);
+        }
+    }
+    
+    function updateCart(gameId, quantity) {
+        fetch(`/api/cart/update/${gameId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ quantity: quantity })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            
+            // Update subtotal for this item
+            const cartItem = document.querySelector(`[data-game-id="${gameId}"]`).closest('.cart-item');
+            const subtotal = cartItem.querySelector('.subtotal');
+            subtotal.textContent = `$${data.new_total.toFixed(2)}`;
+            
+            // Update total
+            updateOrderSummary();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while updating the cart');
+        });
+    }
+    
+    function updateOrderSummary() {
+        const subtotals = Array.from(document.querySelectorAll('.subtotal'))
+            .map(el => parseFloat(el.textContent.replace('$', '')));
+        const total = subtotals.reduce((a, b) => a + b, 0);
+        
+        document.getElementById('subtotal').textContent = `$${total.toFixed(2)}`;
+        document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+    }
+});
+</script>
+{% endblock %}

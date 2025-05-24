@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - GameKart{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Checkout</h1>
+
+    <div class="row">
+        <!-- Checkout Form -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Shipping Information</h5>
+                    
+                    <form method="POST" action="">
+                        <!-- Shipping Address -->
+                        <div class="mb-4">
+                            <label for="shipping_address" class="form-label">Shipping Address</label>
+                            <textarea id="shipping_address" name="shipping_address" class="form-control" rows="3" placeholder="Enter your complete shipping address">{{ current_user.address }}</textarea>
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div class="mb-4">
+                            <label for="phone_number" class="form-label">Phone Number</label>
+                            <input type="text" id="phone_number" name="phone_number" class="form-control" placeholder="Enter your contact number" value="{{ current_user.phone_number }}">
+                        </div>
+
+                        <!-- Special Instructions -->
+                        <div class="mb-4">
+                            <label for="special_instructions" class="form-label">Special Instructions</label>
+                            <textarea id="special_instructions" name="special_instructions" class="form-control" rows="2" placeholder="Any special instructions for delivery (optional)"></textarea>
+                        </div>
+
+                        <!-- Order Items Preview -->
+                        <h5 class="mb-3">Order Items</h5>
+                        <div class="table-responsive mb-4">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Game</th>
+                                        <th>Quantity</th>
+                                        <th class="text-end">Price</th>
+                                        <th class="text-end">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in cart_items %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ url_for('static', filename='uploads/' + item.game.image_url) if item.game.image_url else 'https://via.placeholder.com/50' }}"
+                                                     class="me-2" alt="{{ item.game.title }}" width="50">
+                                                {{ item.game.title }}
+                                            </div>
+                                        </td>
+                                        <td>{{ item.quantity }}</td>
+                                        <td class="text-end">${{ "%.2f"|format(item.game.price) }}</td>
+                                        <td class="text-end">${{ "%.2f"|format(item.game.price * item.quantity) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Place Order</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Order Summary</h5>
+                    
+                    <!-- Items Summary -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Items ({{ cart_items|length }})</span>
+                            <span>${{ "%.2f"|format(total) }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Shipping</span>
+                            <span class="text-success">Free</span>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Total -->
+                    <div class="d-flex justify-content-between mb-3">
+                        <strong>Total</strong>
+                        <strong class="h4 mb-0">${{ "%.2f"|format(total) }}</strong>
+                    </div>
+                    
+                    <!-- Security Notice -->
+                    <div class="alert alert-info mb-0">
+                        <div class="d-flex">
+                            <i class="fas fa-shield-alt me-2"></i>
+                            <div>
+                                <small>
+                                    Your payment and personal information are always secure.
+                                    We use industry-standard encryption to protect your data.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Back to Cart -->
+            <div class="text-center mt-3">
+                <a href="{{ url_for('customer.cart') }}" class="text-decoration-none">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Cart
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.card {
+    border: none;
+    border-radius: 10px;
+}
+.table > :not(caption) > * > * {
+    padding: 1rem;
+}
+.form-control {
+    padding: 0.75rem;
+}
+.btn-lg {
+    padding: 1rem;
+}
+.alert {
+    border-radius: 10px;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-resize textarea
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    });
+
+    // Form validation
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+});
+</script>
+{% endblock %}

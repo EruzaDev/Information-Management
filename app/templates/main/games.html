@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Games - GameKart{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Games</h1>
+
+    <form method="GET" action="{{ url_for('main.games') }}" class="mb-4">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-4">
+                <input type="text" name="search_query" class="form-control" placeholder="Search games..." value="{{ form.search_query or '' }}">
+            </div>
+            <div class="col-md-3">
+                <select name="genre" class="form-select">
+                    {% for value, label in form.genre_choices %}
+                        <option value="{{ value }}" {% if value == form.genre %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="number" name="min_price" class="form-control" placeholder="Min Price" value="{{ form.min_price or '' }}" min="0" step="0.01">
+            </div>
+            <div class="col-md-2">
+                <input type="number" name="max_price" class="form-control" placeholder="Max Price" value="{{ form.max_price or '' }}" min="0" step="0.01">
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+        </div>
+    </form>
+
+    {% if games.items %}
+        <div class="row row-cols-1 row-cols-md-4 g-4">
+            {% for game in games.items %}
+            <div class="col">
+                <div class="card h-100">
+                    <img src="{{ url_for('static', filename='uploads/' + game.image_url) if game.image_url else 'https://via.placeholder.com/150' }}" class="card-img-top" alt="{{ game.title }}">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ game.title }}</h5>
+                        <p class="card-text text-truncate">{{ game.description }}</p>
+                        <p class="card-text"><strong>${{ "%.2f"|format(game.price) }}</strong></p>
+                        <a href="{{ url_for('main.game_detail', id=game.id) }}" class="btn btn-primary mt-auto">View Details</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if games.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('main.games', page=games.prev_num, sort=current_sort) }}">Previous</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Previous</span>
+                </li>
+                {% endif %}
+
+                {% for page_num in games.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        {% if page_num == games.page %}
+                        <li class="page-item active" aria-current="page">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('main.games', page=page_num, sort=current_sort) }}">{{ page_num }}</a>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if games.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('main.games', page=games.next_num, sort=current_sort) }}">Next</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Next</span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% else %}
+        <p>No games found matching your criteria.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}{{ game.title }} - GameKart{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Game Details -->
+    <div class="row">
+        <!-- Game Image -->
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <img src="{{ url_for('static', filename='uploads/' + game.image_url) if game.image_url else 'https://via.placeholder.com/500x600' }}"
+                     class="card-img-top" alt="{{ game.title }}"
+                     style="height: 400px; object-fit: cover;">
+                <div class="card-body text-center">
+                    <div class="d-flex justify-content-center mb-2">
+                        {% for i in range(avg_rating|round|int) %}
+                            <i class="fas fa-star text-warning"></i>
+                        {% endfor %}
+                        {% for i in range(5 - (avg_rating|round|int)) %}
+                            <i class="far fa-star text-warning"></i>
+                        {% endfor %}
+                    </div>
+                    <p class="text-muted mb-0">{{ "%.1f"|format(avg_rating) }} out of 5</p>
+                    <p class="text-muted">Based on {{ reviews|length }} reviews</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Info -->
+        <div class="col-md-7">
+            <h1 class="mb-3">{{ game.title }}</h1>
+            <div class="mb-4">
+                <span class="badge bg-primary me-2">{{ game.genre.name }}</span>
+                <span class="badge bg-secondary">{{ game.release_year }}</span>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Description</h5>
+                    <p class="card-text">{{ game.description }}</p>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-sm-6">
+                            <h3 class="mb-0">${{ "%.2f"|format(game.price) }}</h3>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="mb-0 text-{{ 'success' if game.stock_quantity > 0 else 'danger' }}">
+                                <i class="fas fa-{{ 'check' if game.stock_quantity > 0 else 'times' }}-circle"></i>
+                                {% if game.stock_quantity > 0 %}
+                                    In Stock ({{ game.stock_quantity }} available)
+                                {% else %}
+                                    Out of Stock
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if current_user.is_authenticated and current_user.__class__.__name__ == 'Customer' %}
+                <form action="{{ url_for('customer.add_to_cart', game_id=game.id) }}" method="POST" class="mb-4">
+                    <div class="input-group">
+                        <input type="number" name="quantity" class="form-control" value="1" min="1" 
+                               max="{{ game.stock_quantity }}" {{ 'disabled' if game.stock_quantity == 0 }}>
+                        <button type="submit" class="btn btn-primary" {{ 'disabled' if game.stock_quantity == 0 }}>
+                            <i class="fas fa-cart-plus me-2"></i>Add to Cart
+                        </button>
+                    </div>
+                </form>
+
+            {% elif not current_user.is_authenticated %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Please <a href="{{ url_for('auth.login') }}">login</a> to add items to your cart.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Similar Games -->
+    {% if similar_games %}
+        <section class="my-5">
+            <h3 class="mb-4">Similar Games</h3>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+                {% for game in similar_games %}
+                    <div class="col">
+                        <div class="card h-100 shadow-sm">
+                            <img src="{{ url_for('static', filename='uploads/' + game.image_url) if game.image_url else 'https://via.placeholder.com/300x200' }}"
+                                 class="card-img-top" alt="{{ game.title }}"
+                                 style="height: 150px; object-fit: cover;">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ game.title }}</h5>
+                                <p class="card-text text-muted">${{ "%.2f"|format(game.price) }}</p>
+                                <a href="{{ url_for('main.game_detail', id=game.id) }}" class="btn btn-outline-primary btn-sm">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    <!-- Reviews Section -->
+    <section class="my-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="mb-0">Customer Reviews</h3>
+            {% if current_user.is_authenticated and current_user.__class__.__name__ == 'Customer' %}
+                <a href="{{ url_for('customer.add_review', game_id=game.id) }}" class="btn btn-primary">
+                    <i class="fas fa-star me-2"></i>Write a Review
+                </a>
+            {% endif %}
+        </div>
+
+        {% if reviews %}
+            <div class="row">
+                {% for review in reviews %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <div>
+                                        <h6 class="mb-0">{{ review.customer.name }}</h6>
+                                        <small class="text-muted">
+                                            {{ review.review_date.strftime('%B %d, %Y') }}
+                                        </small>
+                                    </div>
+                                    <div class="text-warning">
+                                        {% for i in range(review.rating) %}
+                                            <i class="fas fa-star"></i>
+                                        {% endfor %}
+                                        {% for i in range(5 - review.rating) %}
+                                            <i class="far fa-star"></i>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <p class="card-text">{{ review.review_text }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-comment-alt fa-3x text-muted mb-3"></i>
+                <p class="lead text-muted">No reviews yet. Be the first to review this game!</p>
+            </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.card {
+    border: none;
+    border-radius: 10px;
+}
+.input-group .form-control {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+.input-group .btn {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+.card-img-top {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Quantity input validation
+    const quantityInput = document.querySelector('input[name="quantity"]');
+    if (quantityInput) {
+        quantityInput.addEventListener('change', function() {
+            const max = parseInt(this.getAttribute('max'));
+            const value = parseInt(this.value);
+            if (value > max) {
+                this.value = max;
+                alert('Maximum available quantity is ' + max);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

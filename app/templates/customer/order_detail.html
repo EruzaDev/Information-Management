@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}Order #{{ order.id }} - GameKart{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Order Status Banner -->
+    <div class="alert alert-{{ 'success' if order.status == 'completed' 
+                              else 'warning' if order.status == 'pending' 
+                              else 'danger' }} mb-4">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-{{ 'check-circle' if order.status == 'completed' 
+                               else 'clock' if order.status == 'pending'
+                               else 'times-circle' }} fa-2x me-3"></i>
+            <div>
+                <h4 class="alert-heading mb-1">
+                    Order {{ 'Completed' if order.status == 'completed'
+                            else 'Pending' if order.status == 'pending'
+                            else 'Cancelled' }}
+                </h4>
+                <p class="mb-0">
+                    {% if order.status == 'completed' %}
+                        Thank you for your purchase! Your order has been completed.
+                    {% elif order.status == 'pending' %}
+                        Your order is being processed. We'll update you when it ships.
+                    {% else %}
+                        This order has been cancelled.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Order Details -->
+        <div class="col-lg-8">
+            <!-- Order Information -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-transparent">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Order #{{ order.id }}</h5>
+                        <span class="text-muted">
+                            {{ order.order_date.strftime('%B %d, %Y') }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Order Items -->
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Game</th>
+                                    <th>Quantity</th>
+                                    <th class="text-end">Price</th>
+                                    <th class="text-end">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.items %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ url_for('static', filename='uploads/' + item.game.image_url) if item.game.image_url else 'https://via.placeholder.com/50' }}"
+                                                 class="me-2" alt="{{ item.game.title }}" width="50">
+                                            <div>
+                                                <h6 class="mb-0">{{ item.game.title }}</h6>
+                                                <small class="text-muted">{{ item.game.genre.name }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td class="text-end">${{ "%.2f"|format(item.price_at_time) }}</td>
+                                    <td class="text-end">${{ "%.2f"|format(item.price_at_time * item.quantity) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
+                                    <td class="text-end">${{ "%.2f"|format(order.total_amount) }}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Shipping:</strong></td>
+                                    <td class="text-end text-success">Free</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                    <td class="text-end"><strong>${{ "%.2f"|format(order.total_amount) }}</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Digital Downloads -->
+            {% if order.status == 'completed' %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">Digital Downloads</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for item in order.items %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ item.game.title }}</h6>
+                                    <small class="text-muted">Size: ~50GB</small>
+                                </div>
+                                <button class="btn btn-primary btn-sm">
+                                    <i class="fas fa-download me-1"></i> Download
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Order Summary Sidebar -->
+        <div class="col-lg-4">
+            <!-- Customer Information -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">Customer Information</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><strong>Name:</strong> {{ order.customer.name }}</p>
+                    <p class="mb-1"><strong>Email:</strong> {{ order.customer.email }}</p>
+                    <p class="mb-1"><strong>Phone:</strong> {{ order.customer.phone_number }}</p>
+                    <p class="mb-0"><strong>Address:</strong> {{ order.customer.address }}</p>
+                </div>
+            </div>
+
+            <!-- Order Timeline -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">Order Timeline</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Order Placed</h6>
+                                <p class="timeline-date">{{ order.order_date.strftime('%B %d, %Y %I:%M %p') }}</p>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item">
+                            <div class="timeline-marker {{ 'bg-success' if order.status != 'pending' else 'bg-secondary' }}"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Processing</h6>
+                                <p class="timeline-text">Order is being processed</p>
+                            </div>
+                        </div>
+
+                        {% if order.status == 'completed' %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Completed</h6>
+                                <p class="timeline-text">Order has been completed</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="d-grid gap-2 mt-4">
+                <a href="{{ url_for('customer.orders') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Orders
+                </a>
+                {% if order.status == 'completed' %}
+                <a href="{{ url_for('main.games') }}" class="btn btn-primary">
+                    <i class="fas fa-gamepad me-2"></i>Browse More Games
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.card {
+    border: none;
+    border-radius: 10px;
+}
+.table > :not(caption) > * > * {
+    padding: 1rem;
+}
+.timeline {
+    position: relative;
+    padding: 0;
+}
+.timeline-item {
+    position: relative;
+    padding-left: 30px;
+    margin-bottom: 25px;
+}
+.timeline-marker {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+}
+.timeline-item:not(:last-child):before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 15px;
+    height: calc(100% + 10px);
+    width: 2px;
+    background: #e9ecef;
+}
+.timeline-title {
+    margin: 0;
+    font-size: 1rem;
+}
+.timeline-text {
+    margin: 5px 0 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+.timeline-date {
+    margin: 5px 0 0;
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+.alert {
+    border: none;
+    border-radius: 10px;
+}
+</style>
+{% endblock %}

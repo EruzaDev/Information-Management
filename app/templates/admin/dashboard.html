@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - GameKart{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="mb-3">Admin Dashboard</h1>
+            <p class="text-muted">Welcome back, {{ current_user.name }}!</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <!-- Total Orders -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="stats-icon bg-primary text-white">
+                                <i class="fas fa-shopping-bag"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h6 class="card-subtitle text-muted mb-1">Total Orders</h6>
+                            <h3 class="card-title mb-0">{{ total_orders }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Customers -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="stats-icon bg-success text-white">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h6 class="card-subtitle text-muted mb-1">Total Customers</h6>
+                            <h3 class="card-title mb-0">{{ total_customers }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Games -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="stats-icon bg-info text-white">
+                                <i class="fas fa-gamepad"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h6 class="card-subtitle text-muted mb-1">Total Games</h6>
+                            <h3 class="card-title mb-0">{{ total_games }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Low Stock Alert -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="stats-icon bg-warning text-white">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h6 class="card-subtitle text-muted mb-1">Low Stock Items</h6>
+                            <h3 class="card-title mb-0">{{ low_stock_games }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Recent Orders -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-transparent">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Recent Orders</h5>
+                        <a href="{{ url_for('admin.orders') }}" class="btn btn-primary btn-sm">
+                            View All
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in recent_orders %}
+                                <tr>
+                                    <td>#{{ order.id }}</td>
+                                    <td>{{ order.customer.name }}</td>
+                                    <td>${{ "%.2f"|format(order.total_amount) }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if order.status == 'completed' 
+                                                               else 'warning' if order.status == 'pending' 
+                                                               else 'danger' }}">
+                                            {{ order.status }}
+                                        </span>
+                                    </td>
+                                    <td>{{ order.order_date.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('admin.order_detail', id=order.id) }}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Low Stock Games -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-transparent">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Low Stock Alert</h5>
+<a href="{{ url_for('main.games') }}" class="btn btn-primary btn-sm">
+    Manage Games
+</a>
+<a href="{{ url_for('admin.customers') }}" class="btn btn-secondary btn-sm ms-2">
+    Manage Customers
+</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for game in low_stock %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ game.title }}</h6>
+                                    <small class="text-danger">
+                                        Only {{ game.stock_quantity }} left in stock
+                                    </small>
+                                </div>
+                                <a href="{{ url_for('admin.edit_game', id=game.id) }}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    Update Stock
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stats-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stats-icon i {
+    font-size: 24px;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+}
+
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid rgba(0,0,0,.125);
+}
+
+.table > :not(caption) > * > * {
+    padding: 1rem;
+}
+
+.list-group-item {
+    border: none;
+    padding: 1rem;
+}
+
+.list-group-item:not(:last-child) {
+    border-bottom: 1px solid rgba(0,0,0,.125);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effect to table rows
+    const tableRows = document.querySelectorAll('tbody tr');
+    tableRows.forEach(row => {
+        row.style.cursor = 'pointer';
+        row.addEventListener('click', function() {
+            const viewButton = this.querySelector('.btn');
+            if (viewButton) {
+                viewButton.click();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

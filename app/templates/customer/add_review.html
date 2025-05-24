@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Add Review - GameKart{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Add Review</h1>
+
+    <form method="POST" action="{{ url_for('customer.add_review', game_id=game_id) }}">
+        <div class="mb-3">
+            <label for="rating" class="form-label">Rating (1-5)</label>
+            <input type="number" class="form-control" id="rating" name="rating" min="1" max="5" required>
+        </div>
+        <div class="mb-3">
+            <label for="review_text" class="form-label">Review</label>
+            <textarea class="form-control" id="review_text" name="review_text" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Review</button>
+    </form>
+</div>
+{% endblock %}
