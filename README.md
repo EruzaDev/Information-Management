@@ -6,11 +6,10 @@ GameKart is a modern web application for an online game store built with Flask a
 
 ### Customer Features
 - User authentication (signup, login, profile management)
-- Browse games with filtering and search capabilities
+- Browse games with filtering
 - Shopping cart functionality
 - Order placement and history
 - Game reviews and ratings
-- Responsive design for mobile and desktop
 
 ### Admin Features
 - Secure admin dashboard
@@ -39,79 +38,6 @@ GameKart is a modern web application for an online game store built with Flask a
 - MySQL Server
 - pip (Python package manager)
 
-## 🔧 Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/gamekart.git
-cd gamekart
-```
-
-2. Create a virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-4. Set up the MySQL database:
-```bash
-mysql -u root -p
-CREATE DATABASE gamekart;
-```
-
-5. Import the database schema:
-```bash
-mysql -u root -p gamekart < gamekart.sql
-```
-
-6. Configure environment variables:
-```bash
-# Create .env file
-SECRET_KEY=your-secret-key
-DATABASE_URL=mysql://username:password@localhost/gamekart
-```
-
-7. Run the application:
-```bash
-python run.py
-```
-
-## 📁 Project Structure
-
-```
-gamekart/
-├── app/
-│   ├── __init__.py
-│   ├── config.py
-│   ├── models/
-│   │   └── models.py
-│   ├── forms/
-│   │   ├── auth_forms.py
-│   │   ├── customer_forms.py
-│   │   └── admin_forms.py
-│   ├── routes/
-│   │   ├── auth.py
-│   │   ├── main.py
-│   │   ├── customer.py
-│   │   └── admin.py
-│   ├── static/
-│   │   ├── css/
-│   │   ├── js/
-│   │   └── uploads/
-│   └── templates/
-│       ├── auth/
-│       ├── main/
-│       ├── customer/
-│       └── admin/
-├── requirements.txt
-└── run.py
-```
-
 ## 💻 Usage
 
 ### Customer Interface
@@ -128,25 +54,9 @@ gamekart/
 4. Monitor sales and analytics
 5. Manage customer accounts
 
-## 🔒 Security Features
-
-- Password hashing using Werkzeug
-- CSRF protection
-- Secure file uploads
-- Role-based access control
-- Input validation and sanitization
-
-## 📱 Responsive Design
-
-The application is fully responsive and optimized for:
-- Desktop browsers
-- Tablets
-- Mobile devices
-
 ## 🎮 Game Management
 
 Admins can:
-- Add new games with details and images
 - Update game information
 - Manage stock levels
 - Set prices and discounts
@@ -182,20 +92,7 @@ Admins can:
 - Customer statistics
 - Revenue analytics
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## 🙏 Acknowledgments
-
-- Bootstrap team for the amazing UI framework
-- Flask community for the excellent documentation
-- All contributors who have helped with the project
+Deiven for the Database
+Justine for the Support in making all this possible
