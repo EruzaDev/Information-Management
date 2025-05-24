@@ -194,10 +194,6 @@ Admins can:
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 👥 Authors
-
-- Your Name - Initial work
-
 ## 🙏 Acknowledgments
 
 - Bootstrap team for the amazing UI framework
